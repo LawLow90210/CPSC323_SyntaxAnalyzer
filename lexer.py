@@ -1,0 +1,168 @@
+# test file input & output storage variables
+
+# test_input = 'easyInput.txt'
+test_input = 'hardInput.txt'
+# test_input = 'hardInput.txt'
+test_output = 'output.txt'
+
+#arrays of all lexeme token names
+
+operators = ['=', '!=', '==', '<=', '>=', '<', '>', '+', '-', '*', '/']
+separators = [')', '(', ';', ':', ',', '.', '{', '}', '@']
+
+# list of numbers
+digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] 
+
+# list of letters
+letters = [chr(i) for i in range(ord('a'), ord('z') + 1)] + [chr(i) for i in range(ord('A'), ord('Z') + 1)] 
+
+# list of keywords
+keywords = ['integer', 'boolean', 'real', 'if', 'else', 'return', 'put', 'get', 'while', 'true', 'false', 'fi', 'function']
+
+#names each character
+def char_class(c):
+    if c.isdigit(): 
+        return 'digit'
+    if c.isalpha(): 
+        return 'letter'
+    if c == '.':    
+        return 'dot'
+    if c == '_': 
+        return 'underscore'
+    return 'other'
+
+#helper to finish the word after an unknown character has been identified
+def word_end(text, i):
+    # this is going to parse through the rest of the word
+    j = i
+    while j < len(text) and (text[j].isalnum() or text[j] == '_'):
+        j += 1
+    return j
+
+#FSM :party:
+class FSM:
+    def __init__(self, transitions, accepting, start='S'):
+        self.transitions = transitions  # dict: (state, char_class) -> next_state
+        self.accepting = accepting # dict: state -> token
+        self.start = start
+
+    def run(self, input_str, i):
+        state = self.start #the starting state
+        last_accept = None # the tokken typefor the longest accepted token
+        last_end = i #the index right after last_accept
+
+        #these are our pointers helping us step through the code
+        j = i 
+
+        #while the pointer is smaller than the length of the input
+        #go to the next transtion and get that information
+        #if the next transition doesnt exist, break
+        while j < len(input_str):
+            next_transition = self.transitions.get((state, char_class(input_str[j])))
+            if next_transition is None:
+                break
+            state = next_transition
+            j += 1
+            
+            if state in self.accepting: # if state does exist,
+                #pointer goes one forward
+                #if the state is an accepting state, the whole token can be read
+                #stores 2 things: the token type, and the index
+                last_accept = self.accepting[state]
+                last_end = j
+        return last_accept, last_end #return the whole accepted token and the index where it ended
+
+#create the int and real lexer object
+
+number_fsm = FSM(
+    transitions={('S','digit'):'INT', ('INT','digit'):'INT',
+                 ('INT','dot'):'DOT', ('DOT','digit'):'REAL',
+                 ('REAL','digit'):'REAL'},
+    accepting={'INT':'integer', 'REAL':'real'},
+)
+
+#create the identifier lexer object
+identifier_fsm = FSM(
+    transitions={('S','letter'):'ID', ('ID','letter'):'ID', ('ID','digit'):'ID', ('ID', 'underscore'):'ID'},
+    accepting={'ID':'identifier'},
+)
+
+#main lexer
+def lex(text, i):
+    while i < len(text):
+        #ignoring whitespaces
+        if text[i].isspace():
+            i += 1
+        # ignoring comments
+        elif text[i] == '!' and text[i+1:i+2] != '=':
+            end = text.find('!', i+1)
+            i = len(text) if end == -1 else end + 1
+        else:
+            break
+
+    #if theres nothing else but whitespace / comments then return
+    if i >= len(text):
+        return None, None, i #this tells us were at the end
+
+    char = text[i] #checks one character
+    twoChar = text[i:i+2] #checks for 2 characters together like in >= or whatever
+    
+    #for operators
+    if twoChar in operators:
+        return 'operator', twoChar, i + len(twoChar) #plugs back into the OG call and starts the lexer over at the new i
+    if char in operators:
+        return 'operator', char, i + 1 #returns to OG call, moves i one character
+
+    #for seperatprs
+    if char in separators:
+        return 'separator', char, i + 1 #returns to the OG call, and moves one space over
+
+    # for ID and keywords
+    if char.isalpha(): # if character is in the alphabet
+        #call the FSM !! :)
+        token_type, end = identifier_fsm.run(text, i)
+        word = text[i:end]
+        if word.lower() in keywords:
+            return 'keyword', word, end #calls OG call and plugs in the words and moves the i to where the word ended
+        return 'identifier', word, end #if the word in not a keyword return the ID that has gone through the FSM and make i where the ID ended
+    
+    #for ints and reals
+    if char.isdigit(): #if character is a digit
+        token_type, end = number_fsm.run(text, i)
+        #check that a number isnt attempting to start an ID
+        if end < len(text) and (text[end].isalpha() or text[end] == '_'):
+            bad_end = word_end(text, end) #tracks when it ended
+            return 'unknown', text[i:bad_end], bad_end # calls OG call and returns token unknkown, move i, and where it ended
+        return token_type, text[i:end], end #calls OG call and returns token of int or real and moves the i to where that ended
+
+    #for starting underscores which are unknown
+    if char == '_':
+        end = word_end(text, i)
+        return 'unknown', text[i:end], end #calls og call, returns token unknown, moves i, and where teh word ended
+
+    #returns any unknown characters as an unknown token, but still continues
+    return 'unknown', char, i+1 
+
+
+# main testing location
+
+with open(test_input, 'r') as file:
+    input_text = file.read()
+
+#tokens = lex(input_text)
+i = 0
+with open(test_output, 'w') as output:
+    output.write(f'{"token":<15}lexeme\n')
+    output.write('-' * 25 + '\n')
+    while True:
+        token_type, lexeme, i = lex(input_text, i)
+        if token_type is None:
+            break
+        output.write(f'{token_type:<15}\t{lexeme}\n')
+
+
+                
+
+
+
+
