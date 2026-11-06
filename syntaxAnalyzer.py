@@ -37,9 +37,24 @@ def rat26f():
 	if not any:
 		print('Error Rule: 1')
 
-def statement_list():
-	print('Test1: Entered statement_list() function')
-	lexer()
+def function_if():
+	if switch:
+		print('<If> ::= if ( <Condition> ) <Statement> <If Prime>')
+	if token == 'if':
+		lexer()
+	else:
+		print('Error')
+	if token == '(':
+		lexer()
+		condition()
+	else:
+			print('Error')
+	if token == ')':
+		lexer()
+		statement()
+		if_prime()
+	if not any:
+		print('Error Rule 18')
 
 def identifiers():
 	if switch:
@@ -57,6 +72,48 @@ def statement_list():
 	if not any:
 		print('Error Rule 14')
 
+def function_return():
+	if switch:
+		print ('<Return> ::= return <Return Prime>')
+	if token == 'return':
+		lexer()
+		return_prime()
+	if not any: 
+		print('Error Rule 19')
+
+def return_prime():
+	if switch:
+		print ('<Return Prime> ::= ; | <Expression> ;')
+	if token == ';':
+		lexer()
+	else: 
+		expression>()
+		lexer()
+	if not any:
+		print('Error Rule 35')
+
+def primary():
+	if switch:
+		print ('<Primary> ::= <Identifier> <Primary_backtrack> | <Integer> <Primary Prime> | ( <Expression> ) <Primary Prime> | <Real> <Primary Prime> | true <Primary Prime> | false <Primary Prime>’')
+	if token == 'identifer':
+		lexer()
+		primary_backtrack
+	if token == 'integer' or 'real':
+			lexer()
+			primary_prime
+	if token is '(':
+		lexer()
+		expression()
+	if token == ')':
+		primary_prime
+	else:
+		print('Error')
+	if token is True or False:
+		lexer()
+		primary_prime()
+	else:
+		print('Error Rule 28')
+
 
 def expression():
 	if switch:
@@ -68,6 +125,62 @@ def expression():
 			print('Error')
 			#end of if
 
+def function_definitions():
+	if switch:
+		print ('<Function Definitions> ::= <Function> <Function Definitions Prime>')
+	function()
+	function_definitions_prime()
+	if not any:
+		print('Error Rule 3')
+
+def function_definitions_prime():
+	if switch:
+		print ('<Function Definitions Prime> ::= <Function Definitions> | epsilon')
+	if token != None:
+		function_definitions()
+	if not any:
+		print('Error Rule 40')
+	else:
+		None
+
+def parameter_list():
+	if switch:
+		print ('<Parameter List> ::= <Parameter> <Parameter List Prime>')
+	parameter()
+	parameter_list_prime()
+	if not any:
+		print('Error Rule 6')
+
+def parameter_list_prime():
+	if switch:
+		print ('<Parameter List Prime> ::= , <Parameter List> | epsilon')
+	if token == ',':
+		parameter_list()
+	if not any:
+		print('Error Rule 39')
+	else:
+		None
+
+def declaration_list():
+	if switch:
+		print ('<Declaration List> := <Declaration> <Declaration List Prime>')
+	declaration()
+	declaration_list_prime()
+	if not any:
+		print('Error Rule 11')
+
+def declaration_list_prime():
+	if switch:
+		print ('<Declaration List Prime> := ; | ; <Declaration List>')
+	lexer()
+	if token != None:
+		declaration_list()
+	else:
+		None
+	if not any:
+		print('Error Rule 38')
+
+
 def expression_prime():
 	if switch:
 		print ('<Expression Prime> := + <Term> <Expression Prime> | - <Term> <Expression Prime> | epsilon')
@@ -78,6 +191,59 @@ def expression_prime():
 			#end of if
 	#end of if
 
+def identifiers_prime():
+	if switch:
+		print ('<IDs_prime> ::=, <IDs> | epsilon')
+	if token == ',':
+		identifiers()
+	if not any:
+		print('Error Rule 37')
+	else:
+		None
+
+def statement_list_prime():
+	if switch:
+		print ('<Statement List Prime> ::= <Statement List> | epsilon')
+	if token != None:
+		statement_list()
+	if not any:
+		print('Error Rule 36')
+	else:
+		None
+
+def statement():
+	if switch:
+		print ('<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>')
+	if token == '{':
+		compound()	
+	else: 
+			print('Error')
+	if token == 'identifier':
+		assign()
+	else:
+		print('Error')
+	if token == 'if':
+		function_if()
+	else:
+		print('Error')
+	if token == 'return':
+		function_return()
+	else: 
+		print('Error')	
+	if token == 'put':
+		function_print()
+	else:
+		print('Error')
+	if token == 'get':
+		scan()
+	else:
+		print('Error')
+	if token == 'while':
+		function_while()
+	else:
+		print('Error')
+	if not any:
+		print('Error Rule 15')
 
 def term():
 	if switch:
@@ -193,10 +359,6 @@ def function_while():
 	else:
 		print("Error: ( expected")
 
-def statement():
-	print('Test1: Entered statement() function')
-	lexer()
-
 def condition():
 	if switch:
 		print ('<Condition> ::= <Expression> <Condition Prime>')
@@ -236,10 +398,6 @@ def scan():
 			lexer()
 		else:
 			print('Error: get expected')
-
-def identifiers():
-	print('Test1: Entered identifiers() function')
-	lexer()
 
 
 def print():
@@ -336,10 +494,6 @@ def parameter_list():
 		parameter_list_prime()
 		if not any:
 			print('Error Rule 6')
-
-def parameter_list_prime():
-	print('TEST1: Entered parameter_list_prime() function')
-	lexer()
 
 
 def declaration():
@@ -458,6 +612,21 @@ def opt_declaration_list():
 	print('TEST1: Entered opt_declaration_list() function')
 	lexer()
 
+def if_prime():
+	if switch:
+		print ('<If Prime> ::=  fi | else <Statement> fi')
+	if token == 'else':
+		lexer()
+		statement()
+	else:
+		print('Error')
+	if token == 'fi':
+		lexer()
+
+	if not any:
+		print('Error Rule 34')
+
+
 
 # main testing location
 
@@ -474,4 +643,38 @@ with open(test_output, 'w') as output:
         if token_type is None:
             break
         output.write(f'{token_type:<15}\t{lexeme}\n')
+
+#syntaxAnalyzer :party:
+class syntaxAnalyzer:
+    def __init__(self, transitions, accepting, start='S'):
+        self.transitions = transitions  # dict: (state, char_class) -> next_state
+        self.accepting = accepting # dict: state -> token
+        self.start = start
+
+    def run(self, input_str, i):
+        state = self.start #the starting state
+        last_accept = None # the tokken typefor the longest accepted token
+        last_end = i #the index right after last_accept
+
+        #these are our pointers helping us step through the code
+        j = i 
+
+        #while the pointer is smaller than the length of the input
+        #go to the next transtion and get that information
+        #if the next transition doesnt exist, break
+        while j < len(input_str):
+            next_transition = self.transitions.get((state, char_class(input_str[j])))
+            if next_transition is None:
+                break
+            state = next_transition
+            j += 1
+            
+            if state in self.accepting: # if state does exist,
+                #pointer goes one forward
+                #if the state is an accepting state, the whole token can be read
+                #stores 2 things: the token type, and the index
+                last_accept = self.accepting[state]
+                last_end = j
+        return last_accept, last_end #return the whole accepted token and the index where it ended
+
 	
