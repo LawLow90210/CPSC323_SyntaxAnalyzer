@@ -1,5 +1,8 @@
-! this is a comment !
-blah blah 0100010102 this 
-( goated ) (yes) uh ;;;; LL:
-5678.0987r6 .7 .09876 
-you987 this that rate yay 
+! test 1 the fun has begun - function and return of the living expression 😲 !
+function convert(fahr integer)
+{
+     Return 5 * (fahr - 32) / 9;
+}
+@ 
+@ 
+put(1);
