@@ -95,6 +95,7 @@ def starts_statement():
 
 # starting functions
 
+#checks the whole program shebang in ordr, includes @ seperators and any tokens left over
 def rat26f():
     rule('<Rat26F> -> <Opt Function Definitions> @ <Opt Declaration List> @ <Statement List>')
     opt_function_definitions()
@@ -105,9 +106,11 @@ def rat26f():
     if cur_type() != 'eof':
         error('Unexpected token', 'extra tokens after the end of the program')
 
+#prints the empty rule without moving past the current token
 def empty():
     rule('<Empty> -> epsilon')
 
+#reads function defs if there even are any, otheriwse skiiiiip
 def opt_function_definitions():
     if is_('function'):
         rule('<Opt Function Definitions> -> <Function Definitions>')
@@ -116,6 +119,7 @@ def opt_function_definitions():
         rule('<Opt Function Definitions> -> <Empty>')
         empty()
 
+#checks for a type keywword to see whther there are declarations to read
 def opt_declaration_list():
     if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
         rule('<Opt Declaration List> -> <Declaration List>')
@@ -124,6 +128,7 @@ def opt_declaration_list():
         rule('<Opt Declaration List> -> <Empty>')
         empty()
 
+#reads params if there is a name, ortherwise  leaves the param list empty
 def opt_parameter_list():
     if cur_type() == 'identifier':
         rule('<Opt Parameter List> -> <Parameter List>')
@@ -134,11 +139,13 @@ def opt_parameter_list():
 
 # functions and parameters
 
+#reads a single function, then checks if another functions follows it
 def function_definitions():
     rule('<Function Definitions> -> <Function> <Function Definitions Prime>')
     function()
     function_definitions_prime()
 
+#keeps reading functions if the next token is the function keyword super important and awesomeeee
 def function_definitions_prime():
     if is_('function'):
         rule('<Function Definitions Prime> -> <Function Definitions>')
@@ -146,6 +153,7 @@ def function_definitions_prime():
     else:
         rule('<Function Definitions Prime> -> epsilon')
 
+#checks te function name, params, local declaraions and the body that is absurd
 def function():
     rule('<Function> -> function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>')
     expect('function')
@@ -156,11 +164,13 @@ def function():
     opt_declaration_list()
     body()
 
+# reads one param group, tehn checks for any more groups that come after
 def parameter_list():
     rule('<Parameter List> -> <Parameter> <Parameter List Prime>')
     parameter()
     parameter_list_prime()
 
+# A comma after the param type means anoter param group follows
 def parameter_list_prime():
     if is_(','):
         rule('<Parameter List Prime> -> , <Parameter List>')
@@ -169,11 +179,13 @@ def parameter_list_prime():
     else:
         rule('<Parameter List Prime> -> epsilon')
 
+# reads the param names followed by type, such as x, y integerr
 def parameter():
     rule('<Parameter> -> <IDs> <Qualifier>')
     identifiers()
     qualifier()
 
+# makes sure that the type is boolean, real or integer
 def qualifier():                    # your old one was misspelled "quantifier"
     rule('<Qualifier> -> integer | boolean | real')
     if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
@@ -181,6 +193,7 @@ def qualifier():                    # your old one was misspelled "quantifier"
     else:
         error('Missing type', "expected 'integer', 'boolean' or 'real'")
 
+# checks the funtion body, needs statements inside braces, I didn't know functions had teeth oh wait not those kinds of braces
 def body():
     rule('<Body> -> { <Statement List> }')
     expect('{')
@@ -189,12 +202,14 @@ def body():
 
 #Declarations and ID's
 
+# reads a declaration and its semicolon, then checks for another declaration
 def declaration_list():
     rule('<Declaration List> -> <Declaration> ; <Declaration List Prime>')
     declaration()
     expect(';')
     declaration_list_prime()
 
+# another type keyward followed by the variable names, like integer x and y
 def declaration_list_prime():
     if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
         rule('<Declaration List Prime> -> <Declaration List>')
@@ -202,16 +217,19 @@ def declaration_list_prime():
     else:
         rule('<Declaration List Prime> -> epsilon')
 
+#checks the type followed by variable names
 def declaration():
     rule('<Declaration> -> <Qualifier> <IDs>')
     qualifier()
     identifiers()
 
+#reads one identifier, checcks formore names seperated by commas
 def identifiers():
     rule('<IDs> -> <Identifier> <IDs Prime>')
     identifier()
     identifiers_prime()
 
+#if there is a comma, another idenitifer has to come after
 def identifiers_prime():
     if is_(','):
         rule('<IDs Prime> -> , <IDs>')
@@ -220,6 +238,7 @@ def identifiers_prime():
     else:
         rule('<IDs Prime> -> epsilon')
 
+#makes sure the curren ttoken is actually an identifier before moving on
 def identifier():                   # replaces your "return" stub
     if cur_type() == 'identifier':
         advance()
@@ -228,11 +247,13 @@ def identifier():                   # replaces your "return" stub
 
 # Statements
 
+#reads one statement, then checks whether more statements come
 def statement_list():
     rule('<Statement List> -> <Statement> <Statement List Prime>')
     statement()
     statement_list_prime()
 
+#keeps going if the next token can start another statement
 def statement_list_prime():
     if starts_statement():          # NOT "token != None", which would try to parse a } as a statement
         rule('<Statement List Prime> -> <Statement List>')
@@ -240,6 +261,7 @@ def statement_list_prime():
     else:
         rule('<Statement List Prime> -> epsilon')
 
+#uses the first token to pick which statement function to call
 def statement():
     if is_('{'):
         rule('<Statement> -> <Compound>');  compound()
@@ -258,12 +280,14 @@ def statement():
     else:
         error('Invalid statement', 'expected the start of a statement')
 
+#checks a block of statements inside braces
 def compound():
     rule('<Compound> -> { <Statement List> }')
     expect('{')
     statement_list()
     expect('}')
 
+#checks the variable name, equals sign, expression, and the ending semicolon
 def assign():
     rule('<Assign> -> <Identifier> = <Expression> ;')
     identifier()
@@ -271,6 +295,7 @@ def assign():
     expression()
     expect(';')
 
+# checks the condition and the if statement, then looks for else or fi
 def function_if():
     rule('<If> -> if ( <Condition> ) <Statement> <If Prime>')
     expect('if')
@@ -280,6 +305,7 @@ def function_if():
     statement()
     if_prime()
 
+# finishes the if with fi, or reads an else statement followe by fi
 def if_prime():
     if is_('fi'):
         rule('<If Prime> -> fi')
@@ -292,11 +318,13 @@ def if_prime():
     else:
         error('Missing symbol', "expected 'fi' or 'else'")
 
+# reads the return keyword, then checks what comes after it
 def function_return():
     rule('<Return> -> return <Return Prime>')
     expect('return')
     return_prime()
 
+#a llows a semicolon right after return, or an something else followed by a semicolon, or something like that
 def return_prime():
     if is_(';'):
         rule('<Return Prime> -> ;')
@@ -306,6 +334,7 @@ def return_prime():
         expression()
         expect(';')
 
+# checks that put contains an expression in parens and ends with a semicolon
 def function_print():
     rule('<Print> -> put ( <Expression> ) ;')
     expect('put')
@@ -314,6 +343,7 @@ def function_print():
     expect(')')
     expect(';')
 
+# checks the variable names inside get and the semicolon at the end
 def scan():
     rule('<Scan> -> get ( <IDs> ) ;')
     expect('get')
@@ -322,6 +352,7 @@ def scan():
     expect(')')
     expect(';')
 
+# checks the while condition and its body, which can be a statement or a block, life is roblox
 def function_while():
     rule('<While> -> while ( <Condition> ) <Statement>')
     expect('while')
@@ -435,6 +466,3 @@ if __name__ == '__main__':
     infile = sys.argv[1] if len(sys.argv) > 1 else test_input
     outfile = sys.argv[2] if len(sys.argv) > 2 else test_output
     run(infile, outfile)
-
-
-	
