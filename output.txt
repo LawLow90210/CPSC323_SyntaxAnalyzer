@@ -1,0 +1,6 @@
+Token: Identifier   Lexeme: blah
+<Rat26F> -> <Opt Function Definitions> @ <Opt Declaration List> @ <Statement List>
+<Opt Function Definitions> -> <Empty>
+<Empty> -> epsilon
+
+Syntax Error (Missing/unexpected symbol) | line 2 | token: identifier | lexeme: blah | expected '@'

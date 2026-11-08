@@ -9,7 +9,7 @@ tokens = []
 # index of the current token
 pos = 0
 # the output file
-output_file = None
+out = None
 
 # list of qualifiers
 QUALIFIERS = ('integer', 'boolean', 'real')
@@ -26,8 +26,6 @@ test_input = 'easyInput02.txt'
 # test_input = 'hardInput.txt'
 # test_input = 'hardInput.txt'
 test_output = 'output.txt'
-
-output_file = test_output
 
 #helper functions
 
@@ -53,7 +51,7 @@ def is_(lexeme):
 # writes the token to the output file
 def show_token():
     if cur_type() != 'eof':
-        output_file.write(f'Token: {cur_type().capitalize():<12} Lexeme: {cur_lex()}\n')
+        out.write(f'Token: {cur_type().capitalize():<12} Lexeme: {cur_lex()}\n')
 
 # moves to the next token instead of using lexer since that wasn't working
 def advance():
@@ -65,7 +63,7 @@ def advance():
 # prints the rule of the function to the output file if switch is true 
 def rule(text):
     if SWITCH:
-        output_file.write(text + '\n')
+        out.write(text + '\n')
 
 # formattig for error messages 
 def error(kind, msg):
