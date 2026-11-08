@@ -143,22 +143,40 @@ def lex(text, i):
     #returns any unknown characters as an unknown token, but still continues
     return 'unknown', char, i+1 
 
-
-# main testing location
-
-with open(test_input, 'r') as file:
-    input_text = file.read()
-
-#tokens = lex(input_text)
-i = 0
-with open(test_output, 'w') as output:
-    output.write(f'{"token":<15}lexeme\n')
-    output.write('-' * 25 + '\n')
+#this turns the text into tokens
+def tokenize(text):
+    tokens = []
+    i = 0
     while True:
-        token_type, lexeme, i = lex(input_text, i)
+        token_type, lexeme, i = lex(text, i)
         if token_type is None:
             break
-        output.write(f'{token_type:<15}\t{lexeme}\n')
+        # where this lexeme began
+        start = i - len(lexeme)
+        # line number for error messages        
+        line = text.count('\n', 0, start) + 1
+        #includes line so the error message can read the line an error is on
+        tokens.append((token_type, lexeme, line))
+        
+    # end-of-file marker
+    tokens.append(('eof', '', text.count('\n') + 1))
+    return tokens
+
+# main testing location
+if __name__ == '__main__':
+    with open(test_input, 'r') as file:
+        input_text = file.read()
+
+    #tokens = lex(input_text)
+    i = 0
+    with open(test_output, 'w') as output:
+        output.write(f'{"token":<15}lexeme\n')
+        output.write('-' * 25 + '\n')
+        while True:
+            token_type, lexeme, i = lex(input_text, i)
+            if token_type is None:
+                break
+            output.write(f'{token_type:<15}\t{lexeme}\n')
 
 
                 

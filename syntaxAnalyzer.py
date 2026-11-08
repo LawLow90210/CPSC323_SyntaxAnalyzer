@@ -1,11 +1,24 @@
-#list of functions
-#if that function 
+#imports
 import lexer
+import sys
 
-#functions / variable def
-switch = False
-#define current token using whatever lexeme we're on
-token = '' 
+# Tells the parser to keep going, false just prints tokens
+SWITCH = True
+# list of (type, lexeme, line) imported from the tokenize function in lexer
+tokens = []
+# index of the current token
+pos = 0
+# the output file
+output_file = None
+
+# list of qualifiers
+QUALIFIERS = ('integer', 'boolean', 'real')
+# lis of operations
+OPERATORS = ('==', '!=', '>', '<', '<=', '>=')
+
+# special error class for when parsing fails
+class ParseError(Exception):
+	pass
 
 # test file input & output storage variables
 
@@ -14,6 +27,67 @@ test_input = 'easyInput02.txt'
 # test_input = 'hardInput.txt'
 test_output = 'output.txt'
 
+output_file = test_output
+
+#helper functions
+
+# returns current positions type
+def cur_type(): 
+	return tokens[pos][0]
+# returns current positions lexeme
+def cur_lex():  
+	return tokens[pos][1]
+# returns current line 
+def cur_line(): 
+	return tokens[pos][2]
+
+# true if the current token is this keyword or seperator or operator
+def is_(lexeme):
+	# making it easier to read
+    type, lexeme_name, _ = tokens[pos]
+	# if type is a keyword, check regardless of case that the lexeme matches one of the lexemes 
+    if type == 'keyword':
+        return lexeme_name.lower() == lexeme
+    return type in ('separator', 'operator') and lexeme_name == lexeme
+
+# writes the token to the output file
+def show_token():
+    if cur_type() != 'eof':
+        output_file.write(f'Token: {cur_type().capitalize():<12} Lexeme: {cur_lex()}\n')
+
+# moves to the next token instead of using lexer since that wasn't working
+def advance():
+    global pos
+    if cur_type() != 'eof':
+        pos += 1
+        show_token()
+
+# prints the rule of the function to the output file if switch is true 
+def rule(text):
+    if SWITCH:
+        output_file.write(text + '\n')
+
+# formattig for error messages 
+def error(kind, msg):
+    lex = cur_lex() if cur_type() != 'eof' else 'end of file'
+    if cur_type() == 'unknown':
+        kind = 'Invalid token'
+    raise ParseError(f'Syntax Error ({kind}) | line {cur_line()} | '
+                     f'token: {cur_type()} | lexeme: {lex} | {msg}')
+
+# current token must be this lexeme, advance or print an error
+def expect(lexeme):
+    if is_(lexeme):
+        advance()
+    else:
+        error('Missing/unexpected symbol', f"expected '{lexeme}'")
+
+# helper for building a statement
+def starts_statement():
+    return (cur_type() == 'identifier' or
+            any(is_(x) for x in ('{', 'if', 'return', 'put', 'get', 'while')))
+
+
 #Naming Conventions:
 # * when printing a statement, capitalize functions and if they are a function prime write as "Function Prime"
 # * when naming functions the names are lowercase and use snake case (ex: snake_case)
@@ -21,660 +95,348 @@ test_output = 'output.txt'
 # * if a function has a name that is shortened capital letters, the function will be named the full word and lowercase (ex: IDs is named identifier)
 # * all functions are single words (ex: expression rather than expressions)
 
+# starting functions
+
 def rat26f():
-	if switch:
-		print('<Rat26F> ::= <Opt Function Definitions> @ <Opt Declaration List> @ <Statement List>')
-	opt_function_definition()
-	if token == '@':
-		lexer()
-	else: 
-		print('Error')
-	if token == '@':
-		lexer()
-		statement_list()
-	else:
-		print('Error')
-	if not any:
-		print('Error Rule: 1')
-
-def function_if():
-	if switch:
-		print('<If> ::= if ( <Condition> ) <Statement> <If Prime>')
-	if token == 'if':
-		lexer()
-	else:
-		print('Error')
-	if token == '(':
-		lexer()
-		condition()
-	else:
-			print('Error')
-	if token == ')':
-		lexer()
-		statement()
-		if_prime()
-	if not any:
-		print('Error Rule 18')
-
-def identifiers():
-	if switch:
-		print ('<IDs> ::= <Identifier> <IDs_prime>')
-	lexer()
-	identifiers_prime()
-	if not any:
-			print('Error Rule 13')
-
-def statement_list():
-	if switch:
-		print ('<Statement List> ::= <Statement> <Statement List Prime>')
-	statement()
-	statement_list_prime()
-	if not any:
-		print('Error Rule 14')
-
-def function_return():
-	if switch:
-		print ('<Return> ::= return <Return Prime>')
-	if token == 'return':
-		lexer()
-		return_prime()
-	if not any: 
-		print('Error Rule 19')
-
-def return_prime():
-	if switch:
-		print ('<Return Prime> ::= ; | <Expression> ;')
-	if token == ';':
-		lexer()
-	else: 
-		expression>()
-		lexer()
-	if not any:
-		print('Error Rule 35')
-
-def primary():
-	if switch:
-		print ('<Primary> ::= <Identifier> <Primary_backtrack> | <Integer> <Primary Prime> | ( <Expression> ) <Primary Prime> | <Real> <Primary Prime> | true <Primary Prime> | false <Primary Prime>’')
-	if token == 'identifer':
-		lexer()
-		primary_backtrack
-	if token == 'integer' or 'real':
-			lexer()
-			primary_prime
-	if token is '(':
-		lexer()
-		expression()
-	if token == ')':
-		primary_prime
-	else:
-		print('Error')
-	if token is True or False:
-		lexer()
-		primary_prime()
-	else:
-		print('Error Rule 28')
-
-
-def expression():
-	if switch:
-		print ('<Expression> ::= <Term> <Expression Prime>')
-	term()
-	expression_prime()
-	#end of if
-	if not any: 
-			print('Error')
-			#end of if
-
-def function_definitions():
-	if switch:
-		print ('<Function Definitions> ::= <Function> <Function Definitions Prime>')
-	function()
-	function_definitions_prime()
-	if not any:
-		print('Error Rule 3')
-
-def function_definitions_prime():
-	if switch:
-		print ('<Function Definitions Prime> ::= <Function Definitions> | epsilon')
-	if token != None:
-		function_definitions()
-	if not any:
-		print('Error Rule 40')
-	else:
-		None
-
-def parameter_list():
-	if switch:
-		print ('<Parameter List> ::= <Parameter> <Parameter List Prime>')
-	parameter()
-	parameter_list_prime()
-	if not any:
-		print('Error Rule 6')
-
-def parameter_list_prime():
-	if switch:
-		print ('<Parameter List Prime> ::= , <Parameter List> | epsilon')
-	if token == ',':
-		parameter_list()
-	if not any:
-		print('Error Rule 39')
-	else:
-		None
-
-def declaration_list():
-	if switch:
-		print ('<Declaration List> := <Declaration> <Declaration List Prime>')
-	declaration()
-	declaration_list_prime()
-	if not any:
-		print('Error Rule 11')
-
-def declaration_list_prime():
-	if switch:
-		print ('<Declaration List Prime> := ; | ; <Declaration List>')
-	lexer()
-	if token != None:
-		declaration_list()
-	else:
-		None
-	if not any:
-		print('Error Rule 38')
-
-
-def expression_prime():
-	if switch:
-		print ('<Expression Prime> := + <Term> <Expression Prime> | - <Term> <Expression Prime> | epsilon')
-		if token == '+' or '-' or None:
-			lexer()
-			term()
-			expression_prime()
-			#end of if
-	#end of if
-
-def identifiers_prime():
-	if switch:
-		print ('<IDs_prime> ::=, <IDs> | epsilon')
-	if token == ',':
-		identifiers()
-	if not any:
-		print('Error Rule 37')
-	else:
-		None
-
-def statement_list_prime():
-	if switch:
-		print ('<Statement List Prime> ::= <Statement List> | epsilon')
-	if token != None:
-		statement_list()
-	if not any:
-		print('Error Rule 36')
-	else:
-		None
-
-def statement():
-	if switch:
-		print ('<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>')
-	if token == '{':
-		compound()	
-	else: 
-			print('Error')
-	if token == 'identifier':
-		assign()
-	else:
-		print('Error')
-	if token == 'if':
-		function_if()
-	else:
-		print('Error')
-	if token == 'return':
-		function_return()
-	else: 
-		print('Error')	
-	if token == 'put':
-		function_print()
-	else:
-		print('Error')
-	if token == 'get':
-		scan()
-	else:
-		print('Error')
-	if token == 'while':
-		function_while()
-	else:
-		print('Error')
-	if not any:
-		print('Error Rule 15')
-
-def term():
-	if switch:
-		print ('<Term> ::= <Factor> <Term Prime>')
-	factor()
-	term_prime()
-	#end of if
-	if not any: 
-			print('Error')
-			#end of if
-
-def term_prime():
-	if switch:
-		print ('<Term Prime> ::= * <Factor> <Term Prime> | / <Factor> <Term Prime> | epsilon')
-		if token == '*' or '/' or None:
-			lexer()
-			factor()
-			term_prime()
-			#end of if
-		if not any:
-			print('Error')
-	#end of if
-
-def factor():
-	if switch:
-		print ('<Factor> ::= - <Primary> | <Primary>')
-		if token == '-':
-			lexer()
-			primary()
-		if not any:
-			print('Error Rule 27')
-	
-def factor():
-	if switch:
-		print ('<Factor> ::= - <Primary> | <Primary>')
-		#end of if
+    rule('<Rat26F> -> <Opt Function Definitions> @ <Opt Declaration List> @ <Statement List>')
+    opt_function_definitions()
+    expect('@')
+    opt_declaration_list()
+    expect('@')
+    statement_list()
+    if cur_type() != 'eof':
+        error('Unexpected token', 'extra tokens after the end of the program')
 
 def empty():
-	if switch:
-		print ('<Empty> ::=')
-	if token == None:
-		lexer()
-	if not any: 
-			print('Error: Empty expected')
-			#end of if
+    rule('<Empty> -> epsilon')
 
-def primary_prime():
-	if switch:
-		print ('<Primary’> ::= <Term’> <Expression’> <Primary’> | epsilon')
-		term()
-		expression_prime()
-		primary_prime()
-		#end of if
-	if not any:
-		print('Error Rule 32')
-		#end of if
-		
-def primary():
-	if switch:
-		print ('''<Primary> : : = <Indentifier> <Primary Prime> 
-		        | <Integer> <Primary Prime> 
-		        | <Identifier> ( <IDs> ) <Primary Prime> 
-		        | ( <Expression> ) <Primary Prime> 
-		        | <Real> <Primary Prime> 
-		        | true Primary Prime 
-		        | false Primary Prime''')
-		#end if
-	lexer()
-	
-	if token == '(':
-		lexer()
-		identifier()
-		#end if
-		
-	if token == ')':
-		lexer()
-		#end if
-	else:
-		print('Error: ( expected ) ')
-		#end else
-	if token == 'true' or 'false':
-		lexer()
-		primary_prime()
-		if not any:
-			print('Error')
-                #end of if
-
-def relop():
-	if switch:
-		print ('<Relop> ::= == | != | > | < | <= | >=')
-		#end if
-	if token in ('==', '!=', '>', '<', '<=', '>='):
-		lexer();
-	if not any:
-		print('Error Rule 24')
-        #end of if
-
-def function_while():
-	if switch:
-		print ('<While> : : = while ( <Condition> ) <Statement>')
-		if token == 'while':
-			lexer()
-		else:
-			print("Error: while expected")
-	if token == '(':
-			lexer()
-			condition()
-	else:
-		print("Error: ( expected")
-	if token == '(':
-		lexer()
-		statement()
-	else:
-		print("Error: ( expected")
-
-def condition():
-	if switch:
-		print ('<Condition> ::= <Expression> <Condition Prime>')
-
-	expression()
-	condition_prime()
-
-	if not any: 
-		print('Error')
-		# end if
-
-def condition_prime():
-	if switch:
-		print ('<Condition Prime> ::= == <Expression> | != <Expression> | > <Expression> | < <Expression> | <= <Expression> | >=  <Expression> ')
-		if token in ('==', '|', '!=', '|', '>', '|', '<', '|,' '<=', '|', '>='):
-			lexer()
-		expression()
-		if not any: 
-			print('Error')
-
-def scan():
-	if switch:
-		print ('<Scan> : : = get ( <IDs> )')
-		if token == 'get':
-			lexer()
-		else:
-			print('Error: get expected')
-		if token == '(':
-			lexer()
-		else:
-			print('Error: get expected')
-
-		# not sure if IDs and identifier are different :standing_man:
-		identifiers() 
-		
-		if token == ')':
-			lexer()
-		else:
-			print('Error: get expected')
-
-
-def print():
-	if switch:
-		print ('<Print> ::= put ( <Expression>)')
-		if token == 'put':
-			lexer()
-			# end if
-		else:
-			print('Error')
-			# end else
-			
-		if token == '(':
-			lexer()
-			# end if
-		else:
-			print('Error')
-			# end else
-			
-		expression()
-		
-		if token == ')':
-			lexer()
-			# end if
-		else:
-			print('Error')
-			# end else
-def assign():
-	if switch:
-		print ('<Assign> ::= <Identifier> = <Expression>')
-	identifier()
-	lexer()
-	expression()
-	# end if
-	
-def identifier():
-	return
-
-def compound():
-	if switch:
-		print ('<Compound> ::= { <Statement List> }')
-	if token == '{':
-		lexer()
-	statement_list()
-	if token == '}':
-		lexer()
-
-	if not any:
-		print('Error Rule 16')
-
-def assign():
-	if switch:
-		print('<Assign> ::= <Identifier> = <Expression>')
-		if token == 'identifier':
-			lexer()
-		else:
-			print('Error')
-		if token == '=':
-			lexer()
-			expression()
-	if not any:
-		print('Error Rule 12')
-
-def factor():
-	if switch:
-		print ('<Factor> ::= - <Primary> | <Primary>')
-		if token == '-':
-			lexer()
-
-		primary()
-		if not any: 
-			print('Error')
-
-def primary_backtrack():
-	if switch:
-		print ('<Primary_backtrack> ::= <Primary’> |  ( <IDs> ) <Primary’>')
-		if token == '(':
-			lexer()
-			identifiers()
-			if token == ')':
-				lexer()
-				primary_prime()
-			else:
-				print('Error')
-		else:
-			primary_prime()
-		if not any:
-			print('Error Rule 41')
-
-def parameter_list():
-	if switch:
-		print ('<Parameter List> ::= <Parameter> <Parameter List Prime>')
-		parameter()
-		parameter_list_prime()
-		if not any:
-			print('Error Rule 6')
-
-
-def declaration():
-	if switch:
-		print ('<Declaration> ::=  <Qualifier > <IDs>')
-	qualifier()
-	identifier()
-	if not any:
-		print('Error Rule 12')
-
-def qualifier():
-	print('TEST1: Entered qualifier() function')
-	lexer()
-
-def body():
-	if switch:
-		print ('<Body> ::= { < Statement List> }')
-	if token == '{':
-		lexer()
-		# end if
-	
-	statement_list()
-	
-	if token == '}':
-		lexer()
-	else:
-		print('Error')
-
-	if not any:
-		print('Error Rule 9')
-
-def function_print():
-	if switch:
-		print('<Print> ::= put ( <Expression>)')
-		if token == 'put':
-			lexer()
-		else:
-			print('Error')
-		if token == '(':
-			lexer()
-		else:
-			print('Error')
-
-		expression()
-
-		if token == ')':
-			lexer()
-		else:
-			print('Error')
-	if not any:
-		print('Error Rule 20')
-
-def quantifier():
-	if switch:
-		print('<Qualifier> ::= integer | boolean | real')
-	if token in ('integer', 'boolean', 'real'):
-		lexer()
-	if not any:
-		print('Error Rule 8')
-
-def parameter():
-	if switch:
-		print('<Parameter> ::= <IDs > <Qualifier>')
-	identifier()
-	quantifier()
-	if not any:
-		print('Error Rule 7')
-
-def opt_parameter_list():
-	if switch:
-		print ('<Opt Parameter List> ::= <Parameter List> | <Empty>')
-	if token is empty:
-	    lexer()
-	else:
-	    parameter_list()
-	if not any:
-		print('Error Rule 5')
-
-def parameter_list():
-	print('TEST1: Entered parameter_list() function')
-	lexer()
-
-def opt_function_definition():
-	if switch:
-		print ('<Opt Function Definitions> ::= <Function Definitions> | <Empty>')
-	if token is empty:
-		lexer()
-	else:
-		function_definition()
-	if not any:
-		print('Error Rule 2')
-
-def function_definition():
-	print('TEST1: Entered function_definition() function')
-	lexer()
-
-def function():
-	if switch:
-		print ('<Function> ::= function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>')
-		if token == 'function':
-			lexer()
-			identifier()
-		else:
-			print('Error')
-		if token == '(':
-			lexer()
-			opt_parameter_list()
-		if token == ')':
-			lexer()
-			opt_declaration_list()
-			body()
-		if not any:
-			print('Error Rule 4') 
+def opt_function_definitions():
+    if is_('function'):
+        rule('<Opt Function Definitions> -> <Function Definitions>')
+        function_definitions()
+    else:
+        rule('<Opt Function Definitions> -> <Empty>')
+        empty()
 
 def opt_declaration_list():
-	print('TEST1: Entered opt_declaration_list() function')
-	lexer()
+    if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
+        rule('<Opt Declaration List> -> <Declaration List>')
+        declaration_list()
+    else:
+        rule('<Opt Declaration List> -> <Empty>')
+        empty()
+
+def opt_parameter_list():
+    if cur_type() == 'identifier':
+        rule('<Opt Parameter List> -> <Parameter List>')
+        parameter_list()
+    else:
+        rule('<Opt Parameter List> -> <Empty>')
+        empty()
+
+# functions and parameters
+
+def function_definitions():
+    rule('<Function Definitions> -> <Function> <Function Definitions Prime>')
+    function()
+    function_definitions_prime()
+
+def function_definitions_prime():
+    if is_('function'):
+        rule('<Function Definitions Prime> -> <Function Definitions>')
+        function_definitions()
+    else:
+        rule('<Function Definitions Prime> -> epsilon')
+
+def function():
+    rule('<Function> -> function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>')
+    expect('function')
+    identifier()
+    expect('(')
+    opt_parameter_list()
+    expect(')')
+    opt_declaration_list()
+    body()
+
+def parameter_list():
+    rule('<Parameter List> -> <Parameter> <Parameter List Prime>')
+    parameter()
+    parameter_list_prime()
+
+def parameter_list_prime():
+    if is_(','):
+        rule('<Parameter List Prime> -> , <Parameter List>')
+        advance()
+        parameter_list()
+    else:
+        rule('<Parameter List Prime> -> epsilon')
+
+def parameter():
+    rule('<Parameter> -> <IDs> <Qualifier>')
+    identifiers()
+    qualifier()
+
+def qualifier():                    # your old one was misspelled "quantifier"
+    rule('<Qualifier> -> integer | boolean | real')
+    if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
+        advance()
+    else:
+        error('Missing type', "expected 'integer', 'boolean' or 'real'")
+
+def body():
+    rule('<Body> -> { <Statement List> }')
+    expect('{')
+    statement_list()
+    expect('}')
+
+#Declarations and ID's
+
+def declaration_list():
+    rule('<Declaration List> -> <Declaration> ; <Declaration List Prime>')
+    declaration()
+    expect(';')
+    declaration_list_prime()
+
+def declaration_list_prime():
+    if cur_type() == 'keyword' and cur_lex().lower() in QUALIFIERS:
+        rule('<Declaration List Prime> -> <Declaration List>')
+        declaration_list()
+    else:
+        rule('<Declaration List Prime> -> epsilon')
+
+def declaration():
+    rule('<Declaration> -> <Qualifier> <IDs>')
+    qualifier()
+    identifiers()
+
+def identifiers():
+    rule('<IDs> -> <Identifier> <IDs Prime>')
+    identifier()
+    identifiers_prime()
+
+def identifiers_prime():
+    if is_(','):
+        rule('<IDs Prime> -> , <IDs>')
+        advance()
+        identifiers()
+    else:
+        rule('<IDs Prime> -> epsilon')
+
+def identifier():                   # replaces your "return" stub
+    if cur_type() == 'identifier':
+        advance()
+    else:
+        error('Missing identifier', 'expected an identifier')
+
+# Statements
+
+def statement_list():
+    rule('<Statement List> -> <Statement> <Statement List Prime>')
+    statement()
+    statement_list_prime()
+
+def statement_list_prime():
+    if starts_statement():          # NOT "token != None", which would try to parse a } as a statement
+        rule('<Statement List Prime> -> <Statement List>')
+        statement_list()
+    else:
+        rule('<Statement List Prime> -> epsilon')
+
+def statement():
+    if is_('{'):
+        rule('<Statement> -> <Compound>');  compound()
+    elif cur_type() == 'identifier':
+        rule('<Statement> -> <Assign>');    assign()
+    elif is_('if'):
+        rule('<Statement> -> <If>');        function_if()
+    elif is_('return'):
+        rule('<Statement> -> <Return>');    function_return()
+    elif is_('put'):
+        rule('<Statement> -> <Print>');     function_print()
+    elif is_('get'):
+        rule('<Statement> -> <Scan>');      scan()
+    elif is_('while'):
+        rule('<Statement> -> <While>');     function_while()
+    else:
+        error('Invalid statement', 'expected the start of a statement')
+
+def compound():
+    rule('<Compound> -> { <Statement List> }')
+    expect('{')
+    statement_list()
+    expect('}')
+
+def assign():
+    rule('<Assign> -> <Identifier> = <Expression> ;')
+    identifier()
+    expect('=')
+    expression()
+    expect(';')
+
+def function_if():
+    rule('<If> -> if ( <Condition> ) <Statement> <If Prime>')
+    expect('if')
+    expect('(')
+    condition()
+    expect(')')
+    statement()
+    if_prime()
 
 def if_prime():
-	if switch:
-		print ('<If Prime> ::=  fi | else <Statement> fi')
-	if token == 'else':
-		lexer()
-		statement()
-	else:
-		print('Error')
-	if token == 'fi':
-		lexer()
+    if is_('fi'):
+        rule('<If Prime> -> fi')
+        advance()
+    elif is_('else'):
+        rule('<If Prime> -> else <Statement> fi')
+        advance()
+        statement()
+        expect('fi')
+    else:
+        error('Missing symbol', "expected 'fi' or 'else'")
 
-	if not any:
-		print('Error Rule 34')
+def function_return():
+    rule('<Return> -> return <Return Prime>')
+    expect('return')
+    return_prime()
 
+def return_prime():
+    if is_(';'):
+        rule('<Return Prime> -> ;')
+        advance()
+    else:
+        rule('<Return Prime> -> <Expression> ;')
+        expression()
+        expect(';')
 
+def function_print():
+    rule('<Print> -> put ( <Expression> ) ;')
+    expect('put')
+    expect('(')
+    expression()
+    expect(')')
+    expect(';')
 
-# main testing location
+def scan():
+    rule('<Scan> -> get ( <IDs> ) ;')
+    expect('get')
+    expect('(')
+    identifiers()
+    expect(')')
+    expect(';')
 
-with open(test_input, 'r') as file:
-    input_text = file.read()
+def function_while():
+    rule('<While> -> while ( <Condition> ) <Statement>')
+    expect('while')
+    expect('(')
+    condition()
+    expect(')')
+    statement()
 
-#tokens = lex(input_text)
-i = 0
-with open(test_output, 'w') as output:
-    output.write(f'{"token":<15}lexeme\n')
-    output.write('-' * 25 + '\n')
-    while True:
-        token_type, lexeme, i = lex(input_text, i)
-        if token_type is None:
-            break
-        output.write(f'{token_type:<15}\t{lexeme}\n')
+# Conditions and expressions
 
-#syntaxAnalyzer :party:
-class syntaxAnalyzer:
-    def __init__(self, transitions, accepting, start='S'):
-        self.transitions = transitions  # dict: (state, char_class) -> next_state
-        self.accepting = accepting # dict: state -> token
-        self.start = start
+def condition():
+    rule('<Condition> -> <Expression> <Relop> <Expression>')
+    expression()
+    relop()
+    expression()
 
-    def run(self, input_str, i):
-        state = self.start #the starting state
-        last_accept = None # the tokken typefor the longest accepted token
-        last_end = i #the index right after last_accept
+def relop():
+    rule('<Relop> -> == | != | > | < | <= | >=')
+    if cur_type() == 'operator' and cur_lex() in OPERATORS:
+        advance()
+    else:
+        error('Missing operator', 'expected a relational operator')
 
-        #these are our pointers helping us step through the code
-        j = i 
+def expression():
+    rule('<Expression> -> <Term> <Expression Prime>')
+    term()
+    expression_prime()
 
-        #while the pointer is smaller than the length of the input
-        #go to the next transtion and get that information
-        #if the next transition doesnt exist, break
-        while j < len(input_str):
-            next_transition = self.transitions.get((state, char_class(input_str[j])))
-            if next_transition is None:
-                break
-            state = next_transition
-            j += 1
-            
-            if state in self.accepting: # if state does exist,
-                #pointer goes one forward
-                #if the state is an accepting state, the whole token can be read
-                #stores 2 things: the token type, and the index
-                last_accept = self.accepting[state]
-                last_end = j
-        return last_accept, last_end #return the whole accepted token and the index where it ended
+def expression_prime():
+    if is_('+') or is_('-'):
+        rule(f'<Expression Prime> -> {cur_lex()} <Term> <Expression Prime>')
+        advance()
+        term()
+        expression_prime()
+    else:
+        rule('<Expression Prime> -> epsilon')
+
+def term():
+    rule('<Term> -> <Factor> <Term Prime>')
+    factor()
+    term_prime()
+
+def term_prime():
+    if is_('*') or is_('/'):
+        rule(f'<Term Prime> -> {cur_lex()} <Factor> <Term Prime>')
+        advance()
+        factor()
+        term_prime()
+    else:
+        rule('<Term Prime> -> epsilon')
+
+def factor():
+    if is_('-'):
+        rule('<Factor> -> - <Primary>')
+        advance()
+        primary()
+    else:
+        rule('<Factor> -> <Primary>')
+        primary()
+
+def primary():
+    if cur_type() == 'identifier':
+        rule('<Primary> -> <Identifier> <Primary Prime>')
+        advance()
+        primary_prime()
+    elif cur_type() == 'integer':
+        rule('<Primary> -> <Integer>')
+        advance()
+    elif cur_type() == 'real':
+        rule('<Primary> -> <Real>')
+        advance()
+    elif is_('('):
+        rule('<Primary> -> ( <Expression> )')
+        advance()
+        expression()
+        expect(')')
+    elif is_('true'):
+        rule('<Primary> -> true')
+        advance()
+    elif is_('false'):
+        rule('<Primary> -> false')
+        advance()
+    else:
+        error('Invalid expression', 'expected an identifier, number, ( , true or false')
+
+def primary_prime():
+    if is_('('):
+        rule('<Primary Prime> -> ( <IDs> )')
+        advance()
+        identifiers()
+        expect(')')
+    else:
+        rule('<Primary Prime> -> epsilon')
+
+# Driver 
+
+def run(in_name, out_name):
+    global tokens, pos, out
+    with open(in_name, 'r') as f:
+        tokens = lexer.tokenize(f.read())
+    pos = 0
+    with open(out_name, 'w') as out:
+        try:
+            show_token()                 # print the first token
+            rat26f()
+            out.write('\nParsing finished: no syntax errors found.\n')
+        except ParseError as e:
+            out.write('\n' + str(e) + '\n')   # error type, line, token, lexeme
+
+if __name__ == '__main__':
+    infile = sys.argv[1] if len(sys.argv) > 1 else test_input
+    outfile = sys.argv[2] if len(sys.argv) > 2 else test_output
+    run(infile, outfile)
+
 
 	
