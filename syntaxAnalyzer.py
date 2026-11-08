@@ -22,7 +22,7 @@ class ParseError(Exception):
 
 # test file input & output storage variables
 
-test_input = 'easyInput02.txt'
+test_input = 'easyInput.txt'
 # test_input = 'hardInput.txt'
 # test_input = 'hardInput.txt'
 test_output = 'output.txt'
