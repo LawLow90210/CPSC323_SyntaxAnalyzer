@@ -1,0 +1,44 @@
+! test 3 the great finale - functions, params, statements and expression 😛!
+function sum(a, b integer)
+Integer result;
+{
+    result = a + b;
+    return result;
+}
+Function choose(value integer, enabled boolean, amount real)
+{
+    if (enabled == true)
+       return value:
+    else 
+       return -value;
+fi
+}
+function finish()
+{
+     return;
+}
+@  
+integer x, y, total;
+boolean ready;
+real amount;
+@ 
+get(x,y);
+ready = true;
+amount = .5;
+total =	sum(x, y);
+total = choose(total, ready, amount);
+while (x > 0)
+{
+     total = total + x * 2;
+     x = x - 1;
+}
+if (total >= 10)
+{
+    put(total);
+}
+else
+{
+     put(-total);
+}
+fi
+if (x != y) put(x); fi
