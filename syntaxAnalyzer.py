@@ -363,12 +363,14 @@ def function_while():
 
 # Conditions and expressions
 
+# reads an a expression on eiter side of a compare operator
 def condition():
     rule('<Condition> -> <Expression> <Relop> <Expression>')
     expression()
     relop()
     expression()
 
+# makes sure this token is one o the allowed comparison operators
 def relop():
     rule('<Relop> -> == | != | > | < | <= | >=')
     if cur_type() == 'operator' and cur_lex() in OPERATORS:
@@ -376,11 +378,13 @@ def relop():
     else:
         error('Missing operator', 'expected a relational operator')
 
+#reads a term first, then checks if we need to add or subtract after
 def expression():
     rule('<Expression> -> <Term> <Expression Prime>')
     term()
     expression_prime()
 
+# reads another (one) term if a plus or minus shows up, then checks it AGAIN
 def expression_prime():
     if is_('+') or is_('-'):
         rule(f'<Expression Prime> -> {cur_lex()} <Term> <Expression Prime>')
@@ -390,11 +394,13 @@ def expression_prime():
     else:
         rule('<Expression Prime> -> epsilon')
 
+# reads a factor and any multiply or divide expression that belongs to the same term
 def term():
     rule('<Term> -> <Factor> <Term Prime>')
     factor()
     term_prime()
 
+# keeps on readin factos join by multiply or dividng
 def term_prime():
     if is_('*') or is_('/'):
         rule(f'<Term Prime> -> {cur_lex()} <Factor> <Term Prime>')
@@ -404,6 +410,7 @@ def term_prime():
     else:
         rule('<Term Prime> -> epsilon')
 
+#allows one minus before a primary, like -x or x+1
 def factor():
     if is_('-'):
         rule('<Factor> -> - <Primary>')
@@ -413,6 +420,7 @@ def factor():
         rule('<Factor> -> <Primary>')
         primary()
 
+# checks for an identifier, number, boolean, or expression in the parens
 def primary():
     if cur_type() == 'identifier':
         rule('<Primary> -> <Identifier> <Primary Prime>')
@@ -438,6 +446,7 @@ def primary():
     else:
         error('Invalid expression', 'expected an identifier, number, ( , true or false')
 
+# checks whether a name is followed by a function call and then reads its identifier arguments, I don't have a funny joke here tbh
 def primary_prime():
     if is_('('):
         rule('<Primary Prime> -> ( <IDs> )')
@@ -449,6 +458,7 @@ def primary_prime():
 
 # Driver 
 
+# gets the tokens from the input, runs the parser, and then saves te results or gives a syntax error :)
 def run(in_name, out_name):
     global tokens, pos, out
     with open(in_name, 'r') as f:
