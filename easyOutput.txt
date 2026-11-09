@@ -1,0 +1,84 @@
+Token: Keyword      Lexeme: function
+<Rat26F> -> <Opt Function Definitions> @ <Opt Declaration List> @ <Statement List>
+<Opt Function Definitions> -> <Function Definitions>
+<Function Definitions> -> <Function> <Function Definitions Prime>
+<Function> -> function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>
+Token: Identifier   Lexeme: convert
+Token: Separator    Lexeme: (
+Token: Identifier   Lexeme: fahr
+<Opt Parameter List> -> <Parameter List>
+<Parameter List> -> <Parameter> <Parameter List Prime>
+<Parameter> -> <IDs> <Qualifier>
+<IDs> -> <Identifier> <IDs Prime>
+Token: Keyword      Lexeme: integer
+<IDs Prime> -> epsilon
+<Qualifier> -> integer | boolean | real
+Token: Separator    Lexeme: )
+<Parameter List Prime> -> epsilon
+Token: Separator    Lexeme: {
+<Opt Declaration List> -> <Empty>
+<Empty> -> epsilon
+<Body> -> { <Statement List> }
+Token: Keyword      Lexeme: Return
+<Statement List> -> <Statement> <Statement List Prime>
+<Statement> -> <Return>
+<Return> -> return <Return Prime>
+Token: Integer      Lexeme: 5
+<Return Prime> -> <Expression> ;
+<Expression> -> <Term> <Expression Prime>
+<Term> -> <Factor> <Term Prime>
+<Factor> -> <Primary>
+<Primary> -> <Integer>
+Token: Operator     Lexeme: *
+<Term Prime> -> * <Factor> <Term Prime>
+Token: Separator    Lexeme: (
+<Factor> -> <Primary>
+<Primary> -> ( <Expression> )
+Token: Identifier   Lexeme: fahr
+<Expression> -> <Term> <Expression Prime>
+<Term> -> <Factor> <Term Prime>
+<Factor> -> <Primary>
+<Primary> -> <Identifier> <Primary Prime>
+Token: Operator     Lexeme: -
+<Primary Prime> -> epsilon
+<Term Prime> -> epsilon
+<Expression Prime> -> - <Term> <Expression Prime>
+Token: Integer      Lexeme: 32
+<Term> -> <Factor> <Term Prime>
+<Factor> -> <Primary>
+<Primary> -> <Integer>
+Token: Separator    Lexeme: )
+<Term Prime> -> epsilon
+<Expression Prime> -> epsilon
+Token: Operator     Lexeme: /
+<Term Prime> -> / <Factor> <Term Prime>
+Token: Integer      Lexeme: 9
+<Factor> -> <Primary>
+<Primary> -> <Integer>
+Token: Separator    Lexeme: ;
+<Term Prime> -> epsilon
+<Expression Prime> -> epsilon
+Token: Separator    Lexeme: }
+<Statement List Prime> -> epsilon
+Token: Separator    Lexeme: @
+<Function Definitions Prime> -> epsilon
+Token: Separator    Lexeme: @
+<Opt Declaration List> -> <Empty>
+<Empty> -> epsilon
+Token: Keyword      Lexeme: put
+<Statement List> -> <Statement> <Statement List Prime>
+<Statement> -> <Print>
+<Print> -> put ( <Expression> ) ;
+Token: Separator    Lexeme: (
+Token: Integer      Lexeme: 1
+<Expression> -> <Term> <Expression Prime>
+<Term> -> <Factor> <Term Prime>
+<Factor> -> <Primary>
+<Primary> -> <Integer>
+Token: Separator    Lexeme: )
+<Term Prime> -> epsilon
+<Expression Prime> -> epsilon
+Token: Separator    Lexeme: ;
+<Statement List Prime> -> epsilon
+
+Parsing finished: no syntax errors found.
